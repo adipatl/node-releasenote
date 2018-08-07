@@ -12,12 +12,12 @@ var slack = function(auth, appName, version, url, callback) {
     });
 };
 
-var theHub = function(auth, appName, version, appShortName, grunt, callback) {
+var theHub = function(auth, appName, version, appShortName, callback) {
     var jive = require("jive-simple-api");
 
     const fs = require('fs');
 
-    var content = fs.readFileSync('changelog.html');
+    var content = fs.readFileSync('changelog.html', 'utf8');
     content = content.replace(/__APP__SHORT__NAME__/g, appShortName);
     content = content.replace(/__APP__VERSION__/g, version);
     var subject = appName + " " + version + " Release Note";
@@ -39,10 +39,14 @@ var theHub = function(auth, appName, version, appShortName, grunt, callback) {
                 tags: ['calc-release-note', appShortName]
             }
         },
-        function(status, result) {
-            console.log(status);
+        function(error, result) {
+            if (error) {
+                console.log(error);
+                callback(error, null)
+                return;
+            }
             console.log(JSON.stringify(result));
-            callback(result.resources.html.ref);
+            callback(null, result.resources.html.ref);
         });
 };
 
@@ -58,6 +62,7 @@ let create = function(auth, appJsonObj, releaseJsonObj, callback) {
     if (semver.lte(appJsonObj.version, releaseJsonObj.version)) {
         console.log(appJsonObj.version + ' is less than or equal to ' + releaseJsonObj.version);
         console.log('Skip this schedule');
+        callback("error");
         return;
     }
     console.log('OK Building the release note from tag ' + releaseJsonObj.version + ' to ' + appJsonObj.version);
@@ -72,13 +77,19 @@ let create = function(auth, appJsonObj, releaseJsonObj, callback) {
     try {
         code = execSync(execCmd).toString();
     } catch (e) {
-        console.log(e.message);
+        callback(e.message);
+        return;
     }
 
-    theHub(auth, appName, appJsonObj.version, appShortName, function(url) {
+    theHub(auth, appName, appJsonObj.version, appShortName, function(error, url) {
+        if (error) {
+            callback(error);
+            return;
+        }
+
         // Notify via Slack
         slack(auth, appName, appJsonObj.version, url, function() {
-            callback();
+            callback(null, { status: 200, message: 'ok'});
         });
     });
 };
