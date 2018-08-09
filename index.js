@@ -20,6 +20,7 @@ var theHub = function(auth, appName, version, appShortName, callback) {
     var content = fs.readFileSync('changelog.html', 'utf8');
     content = content.replace(/__APP__SHORT__NAME__/g, appShortName);
     content = content.replace(/__APP__VERSION__/g, version);
+    content = content.replace(/&/g, ' &amp;');
     var subject = appName + " " + version + " Release Note";
 
     jive.post({
