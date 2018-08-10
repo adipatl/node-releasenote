@@ -23,6 +23,14 @@ var theHub = function(auth, appName, version, appShortName, callback) {
     content = content.replace(/&/g, '&amp;');
     var subject = appName + " " + version + " Release Note";
 
+    let currentDate = '';
+    try {
+        currentDate = require('dateformat')(Date.now(), 'yyyy-mm-dd');
+    } catch (e) {
+        currentDate = 'defaultDateTime';
+    }
+
+
     jive.post({
             clientId: auth.clientId,
             clientSecret: auth.clientSecret,
@@ -37,7 +45,7 @@ var theHub = function(auth, appName, version, appShortName, callback) {
                 subject: subject,
                 type: "document",
                 parent: "https://thehub.thomsonreuters.com/api/core/v3/places/4608503",
-                tags: ['calc-release-note', appShortName]
+                tags: ['calc-release-note', appShortName, currentDate]
             }
         },
         function(error, result) {
