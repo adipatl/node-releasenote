@@ -63,7 +63,7 @@ let create = function(auth, appJsonObj, releaseJsonObj, callback) {
     if (semver.lte(appJsonObj.version, releaseJsonObj.version)) {
         console.log(appJsonObj.version + ' is less than or equal to ' + releaseJsonObj.version);
         console.log('Skip this schedule');
-        callback("error");
+        callback(null, null);
         return;
     }
     console.log('OK Building the release note from tag ' + releaseJsonObj.version + ' to ' + appJsonObj.version);
